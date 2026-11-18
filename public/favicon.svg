@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1f6f5c"/>
+  <!-- clothing tag -->
+  <path d="M150 170 L250 110 H392 V402 H250 L150 342 Z" fill="#ffffff"/>
+  <circle cx="205" cy="256" r="22" fill="#1f6f5c"/>
+  <!-- tally marks -->
+  <g stroke="#1f6f5c" stroke-width="18" stroke-linecap="round">
+    <line x1="268" y1="196" x2="268" y2="316"/>
+    <line x1="300" y1="196" x2="300" y2="316"/>
+    <line x1="332" y1="196" x2="332" y2="316"/>
+    <line x1="364" y1="196" x2="364" y2="316"/>
+    <line x1="252" y1="300" x2="380" y2="212"/>
+  </g>
+</svg>
