@@ -6,6 +6,10 @@ describe('size set per product type', () => {
     expect(sizeSetForCategory(category).id).toBe('letters')
   })
 
+  it('the letter sizes go up to XXXL', () => {
+    expect(sizeSetForCategory('T-Shirt').sizes).toEqual(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'])
+  })
+
   it('shoes default to the shoe sizes', () => {
     expect(sizeSetForCategory('Schuhe').sizes).toEqual(['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'])
   })

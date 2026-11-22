@@ -18,7 +18,7 @@ const JEANS_LENGTHS = [30, 32, 34]
 
 // `label` is UI text (not stored), so it follows the UI language.
 export const SIZE_SETS: readonly SizeSet[] = [
-  { id: 'letters', label: 'XS–XXL', sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+  { id: 'letters', label: 'XS–XXXL', sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] },
   { id: 'eu', label: 'Одяг 34–48', sizes: range(34, 48, 2) },
   { id: 'jeans', label: 'W/L', sizes: JEANS_WIDTHS.flatMap((w) => JEANS_LENGTHS.map((l) => `${w}/${l}`)) },
   { id: 'shoes', label: 'Взуття 36–46', sizes: range(36, 46) },
