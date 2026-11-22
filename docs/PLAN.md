@@ -16,6 +16,39 @@ A web app (PWA) for iPhone to take inventory of clothing in a small shop that ha
   Windows Firewall allows Node.js, and the server is reachable at the LAN IP from the PC. Probably client isolation in the router,
   or the iPhone is not on the same network. Workaround: test via GitHub Pages.
 
+## Stage 1 plan (agreed 2026-11-22)
+
+Decisions confirmed on 2026-11-22:
+- UI language for now: **Ukrainian** (uk/de/en translations stay in stage 5). UI strings live in one
+  dictionary file so stage 5 only adds languages.
+- Default lists (locations, product types, size sets) are taken from this plan. Their **values are German**,
+  because they are stored as data and go into the report as-is.
+- The size grid mode is part of stage 1.
+- "Undo" on a recent entry **deletes** it (no soft delete).
+
+Scope:
+1. Pure logic in its own module, covered by Vitest: SKU / colour / size normalisation, price parsing,
+   totals by (`sku`, `color`, `size`), size grid → entries (only qty > 0), colour suggestions.
+2. Storage layer on Dexie (schema v1 is enough, no migration): saving entries creates the article on
+   first count; existing articles are not overwritten; deleting an entry deletes only that entry.
+   Tested with `fake-indexeddb`.
+3. Counting screen: location in the header (tap to change), article field with suggestions, compact
+   new-article form (type, brand, price; skippable), colour chips + custom, size buttons (set from the
+   product type, switchable), quantity `−`/`+`/number, "Save" keeps article and colour selected,
+   recent entries with "Undo", Live Text hint.
+4. Size grid mode: article + colour → every size of the set with `−`/`+` → "Save all".
+5. `navigator.storage.persist()` is requested automatically on launch; a warning is shown if it is denied.
+6. Diagnostics move to their own tab.
+
+Done when:
+- `npm test` passes, covering the items in 1 and 2 (test run).
+- `npm run build` passes (build run).
+- Manual check by the owner of the repo, in desktop Chrome phone emulation before merge and on the
+  iPhone via GitHub Pages after merge: an entry is saved and survives a restart; a new article appears in
+  the catalogue (visible in its suggestions); after "Save" article, colour and location stay selected;
+  "Undo" removes that entry; the grid creates one entry per size with qty > 0; storage is persisted
+  without pressing a button (diagnostics tab).
+
 ## Context
 
 - One person counts, using their own iPhone (Safari). The shop has Wi-Fi.
