@@ -16,11 +16,12 @@ function range(from: number, to: number, step = 1): string[] {
 const JEANS_WIDTHS = [28, 29, 30, 31, 32, 33, 34, 36, 38]
 const JEANS_LENGTHS = [30, 32, 34]
 
+// `label` is UI text (not stored), so it follows the UI language.
 export const SIZE_SETS: readonly SizeSet[] = [
   { id: 'letters', label: 'XS–XXL', sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-  { id: 'eu', label: '34–48', sizes: range(34, 48, 2) },
+  { id: 'eu', label: 'Одяг 34–48', sizes: range(34, 48, 2) },
   { id: 'jeans', label: 'W/L', sizes: JEANS_WIDTHS.flatMap((w) => JEANS_LENGTHS.map((l) => `${w}/${l}`)) },
-  { id: 'shoes', label: '36–46', sizes: range(36, 46) },
+  { id: 'shoes', label: 'Взуття 36–46', sizes: range(36, 46) },
   { id: 'onesize', label: 'One Size', sizes: ['One Size'] },
 ]
 
@@ -33,17 +34,18 @@ export interface Category {
   sizeSetId: string
 }
 
+// Clothing is mostly sized XS–XXL in this shop; numeric sizes are rare and picked by hand.
 export const CATEGORIES: readonly Category[] = [
   { name: 'Schuhe', sizeSetId: 'shoes' },
-  { name: 'Hose', sizeSetId: 'eu' },
+  { name: 'Hose', sizeSetId: 'letters' },
   { name: 'Jeans', sizeSetId: 'jeans' },
   { name: 'T-Shirt', sizeSetId: 'letters' },
   { name: 'Hemd', sizeSetId: 'letters' },
   { name: 'Bluse', sizeSetId: 'letters' },
   { name: 'Pullover', sizeSetId: 'letters' },
   { name: 'Jacke', sizeSetId: 'letters' },
-  { name: 'Kleid', sizeSetId: 'eu' },
-  { name: 'Rock', sizeSetId: 'eu' },
+  { name: 'Kleid', sizeSetId: 'letters' },
+  { name: 'Rock', sizeSetId: 'letters' },
   { name: 'Mütze', sizeSetId: 'onesize' },
   { name: 'Accessoires', sizeSetId: 'onesize' },
 ]
