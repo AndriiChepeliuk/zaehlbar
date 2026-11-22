@@ -4,25 +4,31 @@ A web app (PWA) for iPhone to take inventory of clothing in a small shop that ha
 
 ## Status
 
-**Last updated: 2026-11-19.** Next step — **stage 1** (counting).
+**Last updated: 2026-11-22.** Next step — not chosen yet: stage 3 (backup) before stage 2 was suggested,
+because stages 1 + 3 are the minimum to start counting; the order is still open.
 
 - ✅ **Stage 0 done (18–19.11).** Deployed: https://andriichepeliuk.github.io/zaehlbar/ (auto-deploy from `main`).
   Checked on iPhone (iOS 18.7, Safari 27.2): install to home screen ✅, data survives a restart ✅,
   works offline ✅, `navigator.storage.persist()` → granted ✅, quota ~38 GB, dark theme ✅.
-- The app currently shows a diagnostics screen (`src/app.tsx`) — in stage 1 the counting screen replaces it;
-  the diagnostics are worth keeping as a separate section in the settings.
-- `persist()` is so far called only by a button — in stage 1, request it automatically on first launch.
+- ✅ **Stage 1 done (22.11, PR #2).** Counting screen with size grid, diagnostics in their own tab,
+  `persist()` requested on launch. `npm test`: 52 tests. Checked on the iPhone by the owner.
+- Size sets after feedback (22.11): clothing is mostly XS–XXXL, so Hose / Kleid / Rock default to it;
+  numeric clothing sizes (34–48) are rare and picked by hand; shoes 36–46.
+- Testing before merge: push the branch, then Actions → "Deploy to GitHub Pages" → Run workflow → the branch.
+  The `github-pages` environment allows `feat/*` branches only; other prefixes need their own rule.
+  While a branch is deployed, the site shows it instead of `main`.
 - Unresolved (not critical): the dev server (`npm run dev`, http://192.168.2.186:5173/zaehlbar/) does not open from the iPhone.
   Windows Firewall allows Node.js, and the server is reachable at the LAN IP from the PC. Probably client isolation in the router,
-  or the iPhone is not on the same network. Workaround: test via GitHub Pages.
+  or the iPhone is not on the same network. Workaround: the branch deploy above.
 
-## Stage 1 plan (agreed 2026-11-22)
+## Stage 1 plan (agreed 2026-11-22, done 2026-11-22)
 
 Decisions confirmed on 2026-11-22:
 - UI language for now: **Ukrainian** (uk/de/en translations stay in stage 5). UI strings live in one
   dictionary file so stage 5 only adds languages.
 - Default lists (locations, product types, size sets) are taken from this plan. Their **values are German**,
   because they are stored as data and go into the report as-is.
+- Clothing types default to XS–XXXL; numeric clothing sizes (34–48) stay selectable by hand.
 - The size grid mode is part of stage 1.
 - "Undo" on a recent entry **deletes** it (no soft delete).
 
