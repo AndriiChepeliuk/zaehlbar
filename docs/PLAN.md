@@ -1,166 +1,166 @@
-# Zählbar — план
+# Zählbar — plan
 
-Вебзастосунок (PWA) для iPhone, щоб провести інвентаризацію одягу в невеликому магазині без електронного обліку.
+A web app (PWA) for iPhone to take inventory of clothing in a small shop that has no electronic stock records.
 
-## Статус
+## Status
 
-**Останнє оновлення: 2026-11-19.** Наступний крок — **етап 1** (рахування).
+**Last updated: 2026-11-19.** Next step — **stage 1** (counting).
 
-- ✅ **Етап 0 завершено (18–19.11).** Розгорнуто: https://andriichepeliuk.github.io/zaehlbar/ (автодеплой з `main`).
-  Перевірено на iPhone (iOS 18.7, Safari 27.2): встановлення на головний екран ✅, дані переживають перезапуск ✅,
-  працює офлайн ✅, `navigator.storage.persist()` → дозволено ✅, квота ~38 ГБ, темна тема ✅.
-- Зараз у застосунку діагностичний екран (`src/app.tsx`) — на етапі 1 його замінить екран рахування;
-  діагностику варто лишити як окремий розділ у налаштуваннях.
-- `persist()` поки викликається лише кнопкою — на етапі 1 запитувати автоматично при першому запуску.
-- Нерозв'язане (не критично): dev-сервер (`npm run dev`, http://192.168.2.186:5173/zaehlbar/) не відкривається з iPhone.
-  Брандмауер Windows дозволяє Node.js, сервер доступний за LAN-IP з ПК. Ймовірно ізоляція клієнтів у роутері
-  або iPhone не в тій самій мережі. Обхід: тестувати через GitHub Pages.
+- ✅ **Stage 0 done (18–19.11).** Deployed: https://andriichepeliuk.github.io/zaehlbar/ (auto-deploy from `main`).
+  Checked on iPhone (iOS 18.7, Safari 27.2): install to home screen ✅, data survives a restart ✅,
+  works offline ✅, `navigator.storage.persist()` → granted ✅, quota ~38 GB, dark theme ✅.
+- The app currently shows a diagnostics screen (`src/app.tsx`) — in stage 1 the counting screen replaces it;
+  the diagnostics are worth keeping as a separate section in the settings.
+- `persist()` is so far called only by a button — in stage 1, request it automatically on first launch.
+- Unresolved (not critical): the dev server (`npm run dev`, http://192.168.2.186:5173/zaehlbar/) does not open from the iPhone.
+  Windows Firewall allows Node.js, and the server is reachable at the LAN IP from the PC. Probably client isolation in the router,
+  or the iPhone is not on the same network. Workaround: test via GitHub Pages.
 
-## Контекст
+## Context
 
-- Рахує одна людина з власного iPhone (Safari). У магазині є Wi-Fi.
-- До ~300 артикулів, до ~30 штук на кожен. Один артикул буває в кількох кольорах і розмірах.
-- Артикул написаний на бирці текстом. Штрихкоди не гарантовані (якщо знайдуться, це бонус на потім).
-- Інвентаризація має **завершитися до 24.12.2026**. Графік у розділі «Терміни».
-- Формат звіту для власника поки невідомий. Робимо Excel і CSV, які легко підлаштувати.
-- **Не вказувати назву магазину чи мережі** ні в коді, ні в репозиторії (репозиторій публічний).
+- One person counts, using their own iPhone (Safari). The shop has Wi-Fi.
+- Up to ~300 articles, up to ~30 pieces each. One article can come in several colours and sizes.
+- The article number is written on the tag as text. Barcodes are not guaranteed (if any turn up, that's a bonus for later).
+- The inventory must be **finished by 24.12.2026**. Schedule in the "Timeline" section.
+- The report format for the owner is not yet known. We produce Excel and CSV, which are easy to adapt.
+- **Do not mention the name of the shop or chain** anywhere in the code or the repository (the repository is public).
 
-## Принципи
+## Principles
 
-1. **Швидке введення на телефоні**: мінімум набору тексту, кнопки, підказки, «залипання» артикула й місця.
-2. **Дані не губляться**: постійне сховище, резервні копії, нагадування про них.
-3. **Без сервера**: усі дані в телефоні, хостинг — статичні файли на GitHub Pages.
-4. **Просто**: тільки те, що потрібно для інвентаризації. Постійний облік можливий згодом.
+1. **Fast input on the phone**: minimal typing, buttons, suggestions, "sticky" article and location.
+2. **Data is never lost**: persistent storage, backups, reminders about them.
+3. **No server**: all data stays on the phone; hosting is static files on GitHub Pages.
+4. **Simple**: only what the inventory needs. Ongoing stock-keeping may come later.
 
-## Модель даних
+## Data model
 
-Ідентифікатори в коді англійською. Інтерфейс перекладається (uk / de / en), заголовки експорту німецькою.
+Identifiers in the code are in English. The UI is translated (uk / de / en); export headers are in German.
 
-### `Article` — довідник артикулів
-| Поле | Тип | Примітка |
+### `Article` — article catalogue
+| Field | Type | Note |
 |---|---|---|
-| `sku` | string, ключ | артикул, нормалізований: trim, без зайвих пробілів, верхній регістр |
-| `category` | string | тип: Взуття, Штани, Футболка, Шапка… (редагований список у налаштуваннях) |
-| `brand` | string | виробник; раніше введені значення підказуються |
-| `name` | string? | назва/опис, необов'язково |
-| `priceCents` | integer? | основна ціна в центах |
-| `variantPrices` | `{color, size, priceCents}[]` | винятки: інша ціна для окремого варіанту (рідко; захована в редагуванні) |
+| `sku` | string, key | article number, normalised: trim, no extra spaces, upper case |
+| `category` | string | type: Shoes, Trousers, T-shirt, Hat… (editable list in the settings) |
+| `brand` | string | manufacturer; previously entered values are suggested |
+| `name` | string? | name/description, optional |
+| `priceCents` | integer? | base price in cents |
+| `variantPrices` | `{color, size, priceCents}[]` | exceptions: a different price for a specific variant (rare; tucked away in editing) |
 | `createdAt`, `updatedAt` | timestamp | |
 
-Ціна для експорту: ціна варіанту, якщо задана, інакше `priceCents` артикула.
+Price for export: the variant price if set, otherwise the article's `priceCents`.
 
-### `Photo` — фото товару
-| Поле | Тип | Примітка |
+### `Photo` — product photo
+| Field | Type | Note |
 |---|---|---|
 | `id` | uuid | |
 | `sku` | string | |
-| `color` | string? | якщо фото конкретного кольору |
-| `blob` | Blob (JPEG) | стиснуте до ~1000 px по довшій стороні, ~100 КБ |
+| `color` | string? | if the photo shows a specific colour |
+| `blob` | Blob (JPEG) | compressed to ~1000 px on the longer side, ~100 KB |
 | `createdAt` | timestamp | |
 
-Зйомка через `<input type="file" accept="image/*" capture="environment">`, стиснення через canvas перед збереженням.
+Capture via `<input type="file" accept="image/*" capture="environment">`, compressed via canvas before saving.
 
-Новий артикул автоматично потрапляє в довідник під час першого підрахунку. Тип, бренд і ціну можна заповнити одразу або пізніше (у списку артикулів позначаються неповні).
+A new article is added to the catalogue automatically on its first count. Type, brand and price can be filled in right away or later (incomplete ones are flagged in the article list).
 
-### `CountEntry` — журнал підрахунків
-Один запис — одна дія рахування («на вітрині 4 шт. артикула X, синій, M»).
+### `CountEntry` — count log
+One entry is one counting action ("4 pcs of article X, blue, M, in the shop window").
 
-| Поле | Тип | Примітка |
+| Field | Type | Note |
 |---|---|---|
 | `id` | uuid | |
-| `sku` | string | посилання на `Article` |
-| `color` | string | вільний текст; підказуються недавні кольори цього артикула та загальні |
-| `size` | string | з набору розмірів або свій |
+| `sku` | string | reference to `Article` |
+| `color` | string | free text; recent colours of this article and common ones are suggested |
+| `size` | string | from a size set or custom |
 | `qty` | integer > 0 | |
-| `location` | string | поточне місце з налаштувань |
+| `location` | string | current location from the settings |
 | `note` | string? | |
 | `createdAt`, `updatedAt` | timestamp | |
 
-Підсумок = сума `qty` по групах (`sku`, `color`, `size`). Розбивка по місцях доступна окремо.
+Total = sum of `qty` grouped by (`sku`, `color`, `size`). A breakdown by location is available separately.
 
 ### `Settings`
-- мова інтерфейсу (uk / de / en)
-- **поточне місце** (вибирається один раз і діє, доки його не змінити; видно в шапці)
-- список місць (наприклад: Зал, Склад, Вітрина)
-- список типів товару; для кожного типу набір розмірів за замовчуванням (Взуття → 36–46)
-- набори розмірів: XS–XXL, 34–48, джинси W/L, взуття 36–46, One Size + свої
-- назва/дата інвентаризації, ім'я того, хто рахує (для експорту)
-- час останньої резервної копії
+- UI language (uk / de / en)
+- **current location** (chosen once and stays in effect until changed; shown in the header)
+- list of locations (for example: Sales floor, Stockroom, Shop window)
+- list of product types; for each type a default size set (Shoes → 36–46)
+- size sets: XS–XXL, 34–48, jeans W/L, shoes 36–46, One Size + custom
+- inventory name/date, name of the person counting (for export)
+- time of the last backup
 
-## Екрани
+## Screens
 
-1. **Рахування** (головний)
-   - Шапка: поточне місце (тап, щоб змінити).
-   - Поле артикула з автодоповненням. Для нового артикула компактна форма: тип, бренд, ціна (можна пропустити).
-   - Кольори кнопками-чіпами (недавні) + свій.
-   - Розміри кнопками (набір залежить від типу товару).
-   - Кількість: `−` / `+` / ввід числа.
-   - «Зберегти» → артикул лишається вибраним, щоб одразу рахувати наступний розмір чи колір.
-   - Внизу останні записи з кнопкою «Скасувати».
-   - **Режим «сітка розмірів»**: артикул + колір → усі розміри набору з `−`/`+` → «Зберегти все» (створює по запису на кожен розмір із кількістю > 0).
-   - Мініатюра фото артикула (якщо є) і кнопка «Додати фото».
-   - Підказка: артикул можна ввести камерою через вбудоване в iOS «Сканувати текст» (Live Text).
-2. **Огляд**: пошук; артикули → варіанти (колір/розмір) → окремі записи; редагування та видалення. Підсумки: кількість артикулів, штук, загальна вартість.
-3. **Артикули**: довідник; редагування типу, бренду, ціни; фільтр «без ціни / неповні».
-4. **Експорт і резервна копія**
-   - Excel (.xlsx): аркуш «Bestand» (Artikel, Typ, Marke, Bezeichnung, Farbe, Größe, Menge, Preis, Summe) + аркуш «Zählungen» (усі записи з місцем і часом).
-   - CSV для німецького Excel: `;`, десяткова кома, UTF-8 з BOM.
-   - Резервна копія через меню «Поділитися» (Web Share API з файлом; запасний варіант — завантаження), варіанти «з фото» / «без фото». Відновлення з файлу.
-   - Фото в xlsx поки не вставляємо (розмір файлу); можливо згодом.
-5. **Налаштування**: мова, місця, типи, набори розмірів, дані інвентаризації.
+1. **Counting** (main)
+   - Header: current location (tap to change).
+   - Article field with autocomplete. For a new article, a compact form: type, brand, price (can be skipped).
+   - Colours as chip buttons (recent) + custom.
+   - Sizes as buttons (the set depends on the product type).
+   - Quantity: `−` / `+` / number input.
+   - "Save" → the article stays selected, so the next size or colour can be counted right away.
+   - At the bottom, recent entries with an "Undo" button.
+   - **"Size grid" mode**: article + colour → all sizes of the set with `−`/`+` → "Save all" (creates one entry per size with quantity > 0).
+   - Thumbnail of the article photo (if any) and an "Add photo" button.
+   - Hint: the article number can be entered with the camera via iOS's built-in "Scan Text" (Live Text).
+2. **Overview**: search; articles → variants (colour/size) → individual entries; editing and deletion. Totals: number of articles, pieces, total value.
+3. **Articles**: catalogue; editing of type, brand, price; filter "no price / incomplete".
+4. **Export and backup**
+   - Excel (.xlsx): sheet "Bestand" (Artikel, Typ, Marke, Bezeichnung, Farbe, Größe, Menge, Preis, Summe) + sheet "Zählungen" (all entries with location and time).
+   - CSV for German Excel: `;`, decimal comma, UTF-8 with BOM.
+   - Backup via the "Share" menu (Web Share API with a file; fallback — download), options "with photos" / "without photos". Restore from a file.
+   - Photos are not embedded in the xlsx for now (file size); maybe later.
+5. **Settings**: language, locations, types, size sets, inventory details.
 
-## Збереження й надійність
+## Storage and reliability
 
-- IndexedDB через Dexie.
-- `navigator.storage.persist()` під час першого запуску.
-- Застосунок треба **додати на головний екран**, інакше Safari може видалити дані сайтів, якими довго не користувалися. Застосунок показує підказку, якщо відкритий не з головного екрана.
-- Нагадування про резервну копію (наприклад, після кожних N записів або раз на день).
-- Версіонування схеми бази (міграції Dexie) з першого дня.
+- IndexedDB via Dexie.
+- `navigator.storage.persist()` on first launch.
+- The app must be **added to the home screen**, otherwise Safari may delete data of sites that haven't been used for a long time. The app shows a hint if it is not opened from the home screen.
+- Backup reminder (for example, after every N entries or once a day).
+- Database schema versioning (Dexie migrations) from day one.
 
-## Технології
+## Technology
 
 - Vite + TypeScript + Preact
 - Dexie (IndexedDB)
-- vite-plugin-pwa (офлайн, маніфест, іконки)
-- Генерація xlsx: бібліотеку вибрати на етапі експорту (кандидати: `exceljs`, `write-excel-file`)
-- i18n: свій простий словник (3 мови, невеликий обсяг тексту)
-- Деплой: GitHub Actions → GitHub Pages
+- vite-plugin-pwa (offline, manifest, icons)
+- xlsx generation: pick the library at the export stage (candidates: `exceljs`, `write-excel-file`)
+- i18n: our own simple dictionary (3 languages, small amount of text)
+- Deployment: GitHub Actions → GitHub Pages
 
-## Налагодження без Mac
+## Debugging without a Mac
 
-- Основна розробка в Chrome/Edge (режим емуляції телефона).
-- Під час розробки iPhone відкриває dev-сервер через локальний Wi-Fi.
-- Вбудований журнал помилок, який видно на екрані.
-- Ранній деплой і перевірка на реальному iPhone (етап 0).
+- Main development in Chrome/Edge (phone emulation mode).
+- During development, the iPhone opens the dev server over the local Wi-Fi.
+- Built-in error log visible on screen.
+- Early deployment and testing on a real iPhone (stage 0).
 
-## Етапи
+## Stages
 
-0. **Каркас**: Vite + Preact + PWA, деплой на GitHub Pages, перевірка встановлення на iPhone і збереження даних. *Мета: якомога раніше зняти ризики, специфічні для iOS.*
-1. **Рахування**: екран рахування (звичайний режим + сітка розмірів), збереження в IndexedDB, поточне місце, довідник артикулів (автоматичне наповнення).
-2. **Огляд і редагування**: списки, пошук, підсумки, редагування артикулів, ціни варіантів, фото.
-3. **Резервна копія і відновлення.**
-4. **Експорт** xlsx і CSV.
-5. **Доведення**: переклади uk/de/en, налаштування, пробна інвентаризація на ~20 товарах, виправлення за відгуками.
+0. **Scaffold**: Vite + Preact + PWA, deployment to GitHub Pages, check of installation on iPhone and data persistence. *Goal: remove iOS-specific risks as early as possible.*
+1. **Counting**: counting screen (normal mode + size grid), storage in IndexedDB, current location, article catalogue (filled automatically).
+2. **Overview and editing**: lists, search, totals, article editing, variant prices, photos.
+3. **Backup and restore.**
+4. **Export** of xlsx and CSV.
+5. **Polish**: uk/de/en translations, settings, trial inventory on ~20 products, fixes based on feedback.
 
-## Терміни
+## Timeline
 
-| Коли | Що |
+| When | What |
 |---|---|
-| до ~25.11 | Етапи 0–1: каркас, деплой, рахування працює на iPhone |
-| до ~02.12 | Етапи 2–4: огляд, резервні копії, експорт |
-| ~03–07.12 | Етап 5: пробна інвентаризація на ~20 товарах, виправлення |
-| ~08–20.12 | **Інвентаризація** |
-| 21–24.12 | Запас: дорахувати, звірити, віддати звіт |
+| by ~25.11 | Stages 0–1: scaffold, deployment, counting works on iPhone |
+| by ~02.12 | Stages 2–4: overview, backups, export |
+| ~03–07.12 | Stage 5: trial inventory on ~20 products, fixes |
+| ~08–20.12 | **Inventory** |
+| 21–24.12 | Buffer: finish counting, reconcile, hand over the report |
 
-Мінімально необхідне для старту рахування: етапи 1 + 3 (рахування + резервна копія). Експорт можна доробляти паралельно з підрахунком, бо дані вже збережені.
+Minimum needed to start counting: stages 1 + 3 (counting + backup). Export can be finished in parallel with counting, since the data is already stored.
 
-## Згодом (не зараз)
+## Later (not now)
 
-- Сканування штрихкодів камерою, якщо на бирках є EAN.
-- Імпорт артикулів із накладних.
-- Кілька інвентаризацій (архів), порівняння.
-- Постійний облік: прихід/продаж.
+- Barcode scanning with the camera, if the tags carry EAN.
+- Importing articles from delivery notes.
+- Multiple inventories (archive), comparison.
+- Ongoing stock-keeping: receipts/sales.
 
-## Відкриті питання
+## Open questions
 
-- Формат звіту, який хоче власник/бухгалтерія.
+- The report format the owner/accounting wants.
