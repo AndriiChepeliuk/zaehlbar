@@ -4,8 +4,11 @@ A web app (PWA) for iPhone to take inventory of clothing in a small shop that ha
 
 ## Status
 
-**Last updated: 2026-11-22.** Next step — not chosen yet: stage 3 (backup) before stage 2 was suggested,
-because stages 1 + 3 are the minimum to start counting; the order is still open.
+**Last updated: 2026-11-25.** Next step — not chosen yet. Must work before counting starts (~08.12):
+backup with device handoff (stage 3) and the sales log (stage 6). Everything else can be finished while
+counting. The order is still open.
+
+- New features agreed on 2026-11-25 — see "Decisions of 2026-11-25" below.
 
 - ✅ **Stage 0 done (18–19.11).** Deployed: https://andriichepeliuk.github.io/zaehlbar/ (auto-deploy from `main`).
   Checked on iPhone (iOS 18.7, Safari 27.2): install to home screen ✅, data survives a restart ✅,
@@ -20,6 +23,36 @@ because stages 1 + 3 are the minimum to start counting; the order is still open.
 - Unresolved (not critical): the dev server (`npm run dev`, http://192.168.2.186:5173/zaehlbar/) does not open from the iPhone.
   Windows Firewall allows Node.js, and the server is reachable at the LAN IP from the PC. Probably client isolation in the router,
   or the iPhone is not on the same network. Workaround: the branch deploy above.
+
+## Decisions of 2026-11-25
+
+Confirmed by the repo owner on 2026-11-25:
+- **Photos** are for the counter's own visual identification and confirmation of an article. Stored at
+  ~1000 px on the longer side (up to ~1600 px if tag text has to stay readable — open); lists show a small
+  version, tapping opens it full screen.
+- **Barcodes** stay in "Later" until the tags have been checked.
+- **Work on a PC** is the same app opened in a desktop browser, with full functionality (no separate
+  read-only viewer). Data moves between devices by **handoff**: there is one master copy at a time, and a
+  backup carries it over by fully replacing the data on the other device. Before a restore, the app checks
+  for local changes newer than the backup and warns with the number of records that would be lost.
+  Merging two copies is not planned.
+- **Sales during the inventory.** The shop stays open; sales go into a paper journal (date only; article
+  number, type, size, colour, price, manufacturer). They are entered in the app in the evening. A sale is
+  subtracted only from a variant that has already been counted: colour and size are picked from the
+  counted variants of that article, so totals cannot go below zero. Sales not yet counted are not entered.
+  Sales are shown separately in the app and in the export.
+- **Export**: Excel is the base. The stock sheet has one row per article (colours and sizes summed).
+  Additionally a variant laid out like the inventory sheet received from the shop (columns: Artikel,
+  Artikelnummer, Anzahl, EK, VK, Saison, Summe). Whether that is an extra sheet in the same file or a
+  print version is open.
+- **New optional article fields**: purchase price (EK, from delivery notes; left empty if unknown — the
+  accountants handle it) and season. An empty EK stays empty, never 0: the row's Summe is empty too, and
+  the total states how many articles have no EK.
+- **Supplier ("Lieferant")**, the heading of the inventory sheet, is not recorded for now: it is unknown
+  who that is (probably a distributor rather than the brand).
+- **Screens**: Counting, Overview, Articles, Sales in the bottom tab bar; Backup/Export, Settings and
+  Diagnostics under "More". Each screen has its own address (e.g. `#/overview`); on a PC the screens use
+  the wider layout (tables instead of cards).
 
 ## Stage 1 plan (agreed 2026-11-22, done 2026-11-22)
 
@@ -61,7 +94,11 @@ Done when:
 - Up to ~300 articles, up to ~30 pieces each. One article can come in several colours and sizes.
 - The article number is written on the tag as text. Barcodes are not guaranteed (if any turn up, that's a bonus for later).
 - The inventory must be **finished by 24.12.2026**. Schedule in the "Timeline" section.
-- The report format for the owner is not yet known. We produce Excel and CSV, which are easy to adapt.
+- The report format is partly known: on 2026-11-25 the shop's paper inventory sheet was received (one sheet
+  per supplier; columns Artikel, Artikelnummer, Anzahl, EK, VK, Saison, Summe). We produce Excel and CSV,
+  which are easy to adapt.
+- The shop stays open during the inventory; sales are written into a paper journal (no cash register with
+  electronic records, no electronic stock records). The counter is also the seller.
 - **Do not mention the name of the shop or chain** anywhere in the code or the repository (the repository is public).
 
 ## Principles
@@ -82,7 +119,9 @@ Identifiers in the code are in English. The UI is translated (uk / de / en); exp
 | `category` | string | type: Shoes, Trousers, T-shirt, Hat… (editable list in the settings) |
 | `brand` | string | manufacturer; previously entered values are suggested |
 | `name` | string? | name/description, optional |
-| `priceCents` | integer? | base price in cents |
+| `priceCents` | integer? | base selling price (VK) in cents |
+| `ekCents` | integer? | purchase price (EK) in cents, from delivery notes; empty if unknown, never 0 as a stand-in |
+| `season` | string? | season; format to be seen on the tags |
 | `variantPrices` | `{color, size, priceCents}[]` | exceptions: a different price for a specific variant (rare; tucked away in editing) |
 | `createdAt`, `updatedAt` | timestamp | |
 
@@ -94,7 +133,7 @@ Price for export: the variant price if set, otherwise the article's `priceCents`
 | `id` | uuid | |
 | `sku` | string | |
 | `color` | string? | if the photo shows a specific colour |
-| `blob` | Blob (JPEG) | compressed to ~1000 px on the longer side, ~100 KB |
+| `blob` | Blob (JPEG) | compressed to ~1000 px on the longer side, ~100 KB (up to ~1600 px if tag text must stay readable — open) |
 | `createdAt` | timestamp | |
 
 Capture via `<input type="file" accept="image/*" capture="environment">`, compressed via canvas before saving.
@@ -115,7 +154,13 @@ One entry is one counting action ("4 pcs of article X, blue, M, in the shop wind
 | `note` | string? | |
 | `createdAt`, `updatedAt` | timestamp | |
 
-Total = sum of `qty` grouped by (`sku`, `color`, `size`). A breakdown by location is available separately.
+Total = sum of `qty` grouped by (`sku`, `color`, `size`), minus sales of that variant. A breakdown by
+location is available separately.
+
+### Sales
+One record per sold piece group from the paper journal: `sku`, `color`, `size`, `qty`, sale date, optional
+price. Only counted variants can be picked. Whether sales get their own table or a `kind` field on
+`CountEntry` is decided in the stage plan.
 
 ### `Settings`
 - UI language (uk / de / en)
@@ -127,6 +172,9 @@ Total = sum of `qty` grouped by (`sku`, `color`, `size`). A breakdown by locatio
 - time of the last backup
 
 ## Screens
+
+Bottom tab bar: Counting, Overview, Articles, Sales; Backup/Export, Settings and Diagnostics under "More".
+Each screen has its own address (`#/…`). The same app runs on a PC with a wider layout.
 
 1. **Counting** (main)
    - Header: current location (tap to change).
@@ -140,13 +188,23 @@ Total = sum of `qty` grouped by (`sku`, `color`, `size`). A breakdown by locatio
    - Thumbnail of the article photo (if any) and an "Add photo" button.
    - Hint: the article number can be entered with the camera via iOS's built-in "Scan Text" (Live Text).
 2. **Overview**: search; articles → variants (colour/size) → individual entries; editing and deletion. Totals: number of articles, pieces, total value.
-3. **Articles**: catalogue; editing of type, brand, price; filter "no price / incomplete".
-4. **Export and backup**
-   - Excel (.xlsx): sheet "Bestand" (Artikel, Typ, Marke, Bezeichnung, Farbe, Größe, Menge, Preis, Summe) + sheet "Zählungen" (all entries with location and time).
+3. **Articles**: catalogue; editing of type, brand, price (VK), EK, season; filter "no price / no EK / incomplete".
+   Filling in EK from delivery notes is expected to happen here, e.g. on a PC.
+4. **Sales**: entering the day's sales from the paper journal — article, then colour and size picked from
+   the counted variants, quantity, date. List of entered sales with editing and deletion.
+5. **Export and backup**
+   - Excel (.xlsx): sheet "Bestand" with one row per article (colours and sizes summed; exact columns fixed at
+     the export stage, following the inventory sheet: Artikel, Artikelnummer, Anzahl, EK, VK, Saison, Summe)
+     + sheet "Zählungen" (all entries with location and time) + a sheet with the sales.
+   - Summe = Anzahl × EK (the repo owner's assumption — to confirm). Empty EK → empty Summe; the total
+     states how many articles have no EK.
+   - Additionally a variant laid out like the inventory sheet (extra sheet or print version — open).
    - CSV for German Excel: `;`, decimal comma, UTF-8 with BOM.
    - Backup via the "Share" menu (Web Share API with a file; fallback — download), options "with photos" / "without photos". Restore from a file.
+   - **Handoff between devices**: a restore fully replaces the data on this device. Before it, the app
+     checks for local changes newer than the backup and warns with the number of records that would be lost.
    - Photos are not embedded in the xlsx for now (file size); maybe later.
-5. **Settings**: language, locations, types, size sets, inventory details.
+6. **Settings**: language, locations, types, size sets, inventory details.
 
 ## Storage and reliability
 
@@ -176,10 +234,13 @@ Total = sum of `qty` grouped by (`sku`, `color`, `size`). A breakdown by locatio
 
 0. **Scaffold**: Vite + Preact + PWA, deployment to GitHub Pages, check of installation on iPhone and data persistence. *Goal: remove iOS-specific risks as early as possible.*
 1. **Counting**: counting screen (normal mode + size grid), storage in IndexedDB, current location, article catalogue (filled automatically).
-2. **Overview and editing**: lists, search, totals, article editing, variant prices, photos.
-3. **Backup and restore.**
-4. **Export** of xlsx and CSV.
+2. **Overview and editing**: lists, search, totals, article editing (incl. EK, season), variant prices, photos,
+   tab navigation with screen addresses, wider PC layout.
+3. **Backup and restore**, incl. the handoff warning before a restore.
+4. **Export** of xlsx and CSV (per-article stock sheet, inventory-sheet variant).
 5. **Polish**: uk/de/en translations, settings, trial inventory on ~20 products, fixes based on feedback.
+6. **Sales log** (added 2026-11-25): entering sales from the paper journal, subtracting them from totals.
+   Must work before counting starts (~08.12); its place in the order is open.
 
 ## Timeline
 
@@ -191,15 +252,25 @@ Total = sum of `qty` grouped by (`sku`, `color`, `size`). A breakdown by locatio
 | ~08–20.12 | **Inventory** |
 | 21–24.12 | Buffer: finish counting, reconcile, hand over the report |
 
-Minimum needed to start counting: stages 1 + 3 (counting + backup). Export can be finished in parallel with counting, since the data is already stored.
+Minimum needed to start counting: stages 1 + 3 + 6 (counting + backup + sales log). Export, overview and
+article editing can be finished in parallel with counting, since the data is already stored.
 
 ## Later (not now)
 
-- Barcode scanning with the camera, if the tags carry EAN.
+- Barcode scanning, if the tags carry codes. First check 15–20 different tags: is there a code, what kind
+  (EAN-13 or the shop's own), does it match the article number. A Bluetooth scanner acting as a keyboard is
+  a cheaper alternative to camera scanning.
+- Merging two copies of the data (parallel work on two devices) — only if handoff stops being enough.
 - Importing articles from delivery notes.
 - Multiple inventories (archive), comparison.
 - Ongoing stock-keeping: receipts/sales.
 
 ## Open questions
 
-- The report format the owner/accounting wants.
+- The report format the owner/accounting wants — partly answered by the inventory sheet (see Context).
+- Who the "Lieferant" on the inventory sheet is (probably a distributor); not recorded until known.
+- Season: is it on the tags, and in what format?
+- Summe: Anzahl × EK (assumed) or × VK?
+- Inventory-sheet variant of the export: an extra sheet in the same Excel file or a print version?
+- Photo size: ~1000 px or up to ~1600 px (readable tag text)?
+- The order of the remaining stages.
